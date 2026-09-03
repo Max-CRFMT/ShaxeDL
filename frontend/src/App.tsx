@@ -1,74 +1,152 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "./App.css";
 
 function App() {
   const [url, setUrl] = useState("");
   const [format, setFormat] = useState("mp4");
-  const [quality, setQuality] = useState("1080p");
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
+  const [darkMode, setDarkMode] = useState(true);
 
-  const handleDownload = () => {
-    if (!url.trim()) {
+  useEffect(() => {
+    document.body.className = darkMode ? "dark" : "light";
+  }, [darkMode]);
+
+  const handleDownload = async () => {
+    const videoId = url.trim();
+
+    if (!videoId) {
+      setMessage("Entre un identifiant YouTube.");
       return;
     }
 
-    console.log({
-      url,
-      format,
-      quality,
-    });
+    setLoading(true);
+    setMessage("");
 
-    // Plus tard :
-    // appel à l'API FastAPI
+    try {
+      const response = await fetch("http://127.0.0.1:8000/download", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          url: videoId,
+          format: format,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Le téléchargement a échoué.");
+      }
+
+      setMessage("Téléchargement lancé.");
+    } catch (error) {
+      console.error(error);
+
+      setMessage(
+        "Impossible de contacter le backend."
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <main className="app">
-      <div className="download-container">
-        <h1>Video Downloader</h1>
+    <div className="app">
+      <button
+        className="theme-button"
+        onClick={() => setDarkMode(!darkMode)}
+        aria-label="Changer de thème"
+      >
+        <span className="theme-icon">
+          {darkMode ? "☀" : "☾"}
+        </span>
+      </button>
 
-        <p className="subtitle">
-          Télécharge une vidéo dans le format et la qualité de ton choix.
-        </p>
-
-        <div className="form">
-          <input
-            type="url"
-            placeholder="Colle ton lien ici..."
-            value={url}
-            onChange={(e) => setUrl(e.target.value)}
-          />
-
-          <div className="options">
-            <select
-              value={format}
-              onChange={(e) => setFormat(e.target.value)}
-            >
-              <option value="mp4">MP4</option>
-              <option value="mp3">MP3</option>
-            </select>
-
-            <select
-              value={quality}
-              onChange={(e) => setQuality(e.target.value)}
-            >
-              <option value="360p">360p</option>
-              <option value="480p">480p</option>
-              <option value="720p">720p</option>
-              <option value="1080p">1080p</option>
-              <option value="1440p">1440p</option>
-              <option value="2160p">2160p (4K)</option>
-            </select>
+      <main className="main">
+        <div className="brand">
+          <div className="logo">
+            ↓
           </div>
 
-          <button
-            onClick={handleDownload}
-            disabled={!url.trim()}
-          >
-            Télécharger
-          </button>
+          <span>Downloader</span>
         </div>
-      </div>
-    </main>
+
+        <section className="content">
+          <h1>
+            Télécharge ce que<br />
+            tu veux, simplement.
+          </h1>
+
+          <p className="description">
+            Entre un identifiant YouTube et choisis ton format.
+          </p>
+
+          <div className="form">
+            <div className="input-section">
+              <label htmlFor="youtube-id">
+                Identifiant YouTube
+              </label>
+
+              <input
+                id="youtube-id"
+                type="text"
+                placeholder="jIxs89D9MDY"
+                value={url}
+                onChange={(e) => setUrl(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    handleDownload();
+                  }
+                }}
+              />
+
+              <span className="hint">
+                Exemple : <strong>jIxs89D9MDY</strong> — uniquement
+                l'identifiant, pas l'URL complète.
+              </span>
+            </div>
+
+            <div className="format-section">
+              <label htmlFor="format">
+                Format
+              </label>
+
+              <select
+                id="format"
+                value={format}
+                onChange={(e) => setFormat(e.target.value)}
+              >
+                <option value="mp4">MP4 — Vidéo</option>
+                <option value="mp3">MP3 — Audio</option>
+              </select>
+            </div>
+
+            <button
+              className="download-button"
+              onClick={handleDownload}
+              disabled={loading || !url.trim()}
+            >
+              <span>
+                {loading ? "Téléchargement..." : "Télécharger"}
+              </span>
+
+              {!loading && <span className="arrow">→</span>}
+            </button>
+          </div>
+
+          {message && (
+            <p className="message">
+              {message}
+            </p>
+          )}
+        </section>
+
+        <footer>
+          Backend par <strong>Le Légendaire Bytouille</strong>
+        </footer>
+      </main>
+    </div>
   );
 }
 
