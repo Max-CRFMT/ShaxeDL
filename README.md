@@ -1,8 +1,6 @@
 # ShaxeDL
-Utilitaire de téléchargement de vidéos pour Shaxe.
+Utilitaire de téléchargement de vidéos pour Shaxe. Téléchargement dans la meilleure qualité possible. Playlists supportées.
 
 # INSTALLATION ET UTILISATION :
-
-- Lancer le start.bat, ça s'occupe de tout.
-
-Voilà c'est tout.
+- Installer Nodejs : https://nodejs.org/fr/download
+- Lancer le start.bat et ne pas fermer les invites de commandes.
